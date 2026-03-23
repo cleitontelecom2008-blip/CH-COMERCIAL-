@@ -1,0 +1,17 @@
+{
+  "name": "ch-geladas-pdv",
+  "version": "9.4.0",
+  "description": "CH Geladas PDV — Sistema de ponto de venda",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/app.css --minify",
+    "build:css:watch": "tailwindcss -i ./src/input.css -o ./dist/app.css --watch",
+    "icons": "node generate-icons.js",
+    "build": "npm run build:css && npm run icons",
+    "dev": "npm run build:css:watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "sharp": "^0.33.0"
+  }
+}

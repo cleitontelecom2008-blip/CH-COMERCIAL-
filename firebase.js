@@ -17,12 +17,12 @@ import { getFirestore, enableNetwork, disableNetwork }
    ⚠️ Manter sincronizado com saas-auth.js!
 ═══════════════════════════════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
-  apiKey:            "SUA_API_KEY",
-  authDomain:        "SEU_PROJETO.firebaseapp.com",
-  projectId:         "SEU_PROJETO",
-  storageBucket:     "SEU_PROJETO.appspot.com",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId:             "SEU_APP_ID",
+    apiKey:            "AIzaSyBwIYy2lsE5l7kPlNg6BHJMrFk6pH2uO28",
+  authDomain:        "meu-pdv-saas.firebaseapp.com",
+  projectId:         "meu-pdv-saas",
+  storageBucket:     "meu-pdv-saas.firebasestorage.app",
+  messagingSenderId: "722034622350",
+  appId:             "1:722034622350:web:9f0001fe5b850c6b8aeedf",
 };
 
 /* ═══════════════════════════════════════════════════════════════════

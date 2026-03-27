@@ -4,66 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PDV SaaS — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#060810;color:#f1f5f9;min-height:100vh;}
 .card{background:rgba(17,24,39,.98);border:1px solid rgba(255,255,255,.08);border-radius:1.25rem;}
-.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
-.inp{background:#1e293b;border:2px solid #334155;border-radius:.75rem;padding:.65rem 1rem;color:#fff;font-size:.83rem;font-family:inherit;outline:none;width:100%;transition:border-color .15s;}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
+.inp{background:#1e293b;border:2px solid #334155;border-radius:.75rem;padding:.7rem 1rem;color:#fff;font-size:.85rem;font-family:inherit;outline:none;width:100%;}
 .inp:focus{border-color:#3b82f6;}
-.btn{padding:.6rem 1.1rem;border-radius:.75rem;border:none;cursor:pointer;font-size:.78rem;font-weight:800;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:.4rem;}
+.btn{padding:.65rem 1.25rem;border-radius:.75rem;border:none;cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;transition:all .15s;}
 .btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;}
-.btn-primary:hover{opacity:.88;}
-.btn-ghost{background:rgba(255,255,255,.05);color:#94a3b8;border:1px solid rgba(255,255,255,.08);}
-.btn-ghost:hover{background:rgba(255,255,255,.09);color:#f1f5f9;}
-.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;}
-.btn-danger:hover{background:rgba(239,68,68,.22);}
-.btn-success{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#34d399;}
-.btn-success:hover{background:rgba(16,185,129,.22);}
-.btn-sm{padding:.35rem .75rem;font-size:.72rem;}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary:hover{opacity:.9;}
+.btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;}
+.btn-sm{padding:.4rem .8rem;font-size:.75rem;}
 table{width:100%;border-collapse:collapse;}
-th{text-align:left;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#374151;padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);}
-td{padding:.8rem 1rem;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(255,255,255,.015);}
-.stat-card{background:rgba(17,24,39,.98);border:1px solid rgba(255,255,255,.07);border-radius:1rem;padding:1.1rem 1.25rem;}
-.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem;}
-.overlay.open{display:flex;}
-.modal-box{width:100%;max-width:460px;padding:2rem;}
-.lbl{display:block;font-size:.72rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;}
-.divider{height:1px;background:rgba(255,255,255,.06);margin:1.1rem 0;}
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;padding:.75rem 1.25rem;border-radius:.9rem;font-size:.8rem;font-weight:700;color:#fff;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;max-width:320px;}
-.toast.show{transform:translateY(0);opacity:1;}
-.close-btn{background:rgba(255,255,255,.06);border:none;color:#94a3b8;width:30px;height:30px;border-radius:.5rem;cursor:pointer;font-size:.88rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.close-btn:hover{background:rgba(255,255,255,.12);color:#f1f5f9;}
+th{text-align:left;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#4b5563;padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);}
+td{padding:.85rem 1rem;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.stat-card{background:rgba(17,24,39,.98);border:1px solid rgba(255,255,255,.08);border-radius:1rem;padding:1.25rem;}
 </style>
 </head>
 <body>
 
-<div id="g-toast" class="toast"></div>
-
 <!-- LOGIN -->
 <div id="adm-login" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem">
   <div class="card" style="width:100%;max-width:360px;padding:2rem">
-    <div style="text-align:center;margin-bottom:1.75rem">
+    <div style="text-align:center;margin-bottom:1.5rem">
       <div style="font-size:2.5rem;margin-bottom:.5rem">🛡️</div>
-      <h1 style="font-size:1.2rem;font-weight:900">Admin SaaS</h1>
-      <p style="font-size:.72rem;color:#4b5563;margin-top:.3rem">Acesso restrito ao painel de controle</p>
+      <h1 style="font-size:1.25rem;font-weight:900;color:#f1f5f9">Admin SaaS</h1>
+      <p style="font-size:.75rem;color:#4b5563;margin-top:.25rem">Acesso restrito</p>
     </div>
     <div id="adm-err" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:.75rem;padding:.75rem;font-size:.8rem;margin-bottom:.75rem;display:none"></div>
-    <label class="lbl">Email</label>
-    <input class="inp" id="adm-email" type="email" placeholder="admin@empresa.com"
-      style="margin-bottom:.75rem" onkeydown="if(event.key==='Enter')admLogin()">
-    <label class="lbl">Senha</label>
-    <input class="inp" id="adm-pass" type="password" placeholder="••••••••"
-      style="margin-bottom:1rem" onkeydown="if(event.key==='Enter')admLogin()">
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:.8rem"
-      id="adm-login-btn" onclick="admLogin()">
-      <i class="fas fa-shield-alt"></i> Entrar como Admin
-    </button>
+    <input class="inp" id="adm-email" type="email" placeholder="Email admin" style="margin-bottom:.75rem">
+    <input class="inp" id="adm-pass"  type="password" placeholder="Senha" style="margin-bottom:.75rem">
+    <button class="btn btn-primary" style="width:100%" onclick="admLogin()">Entrar como Admin</button>
   </div>
 </div>
 
@@ -71,78 +47,62 @@ tr:hover td{background:rgba(255,255,255,.015);}
 <div id="adm-dashboard" style="display:none">
 
   <!-- Header -->
-  <div style="background:rgba(8,12,22,.98);border-bottom:1px solid rgba(255,255,255,.05);
-              padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;
-              position:sticky;top:0;z-index:50">
+  <div style="background:rgba(13,17,23,.98);border-bottom:1px solid rgba(255,255,255,.06);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
     <div style="display:flex;align-items:center;gap:.75rem">
-      <span style="font-size:1.4rem">🛡️</span>
+      <span style="font-size:1.5rem">🛡️</span>
       <div>
-        <h1 style="font-size:.95rem;font-weight:900">PDV SaaS Admin</h1>
-        <p style="font-size:.65rem;color:#374151" id="adm-uid-label">—</p>
+        <h1 style="font-size:1rem;font-weight:900;color:#f1f5f9;margin:0">PDV SaaS Admin</h1>
+        <p style="font-size:.7rem;color:#4b5563;margin:0" id="adm-uid-label">uid: —</p>
       </div>
     </div>
-    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-sm" id="btn-refresh" onclick="loadEmpresas()">
-        <i class="fas fa-sync-alt"></i> Atualizar
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="btn" style="background:rgba(255,255,255,.05);color:#94a3b8;font-size:.75rem" onclick="loadEmpresas()">
+        <i class="fa fa-refresh"></i> Atualizar
       </button>
-      <button class="btn btn-primary btn-sm" onclick="openCriar()">
-        <i class="fas fa-plus"></i> Nova Empresa
-      </button>
-      <button class="btn btn-danger btn-sm" onclick="admLogout()">
-        <i class="fas fa-sign-out-alt"></i> Sair
-      </button>
+      <button class="btn btn-danger btn-sm" onclick="admLogout()">Sair</button>
     </div>
   </div>
 
-  <div style="padding:1.5rem;max-width:1280px;margin:0 auto">
+  <div style="padding:1.5rem;max-width:1200px;margin:0 auto">
 
     <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;margin-bottom:1.5rem"
-      id="adm-stats"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem" id="adm-stats"></div>
 
-    <!-- Filtros -->
-    <div style="display:flex;gap:.65rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
-      <input class="inp" id="adm-search" type="search"
-        placeholder="🔍 Buscar empresa, email ou ID..."
-        style="max-width:300px;flex:1 1 200px" oninput="filterEmpresas()">
-      <select class="inp" id="adm-filter-plano"
-        style="max-width:150px;flex:0 0 auto" onchange="filterEmpresas()">
+    <!-- Toolbar -->
+    <div style="display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
+      <input class="inp" id="adm-search" type="search" placeholder="Buscar empresa..." style="max-width:260px" oninput="filterEmpresas()">
+      <select class="inp" id="adm-filter-plano" style="max-width:160px" onchange="filterEmpresas()">
         <option value="">Todos os planos</option>
         <option value="free">Free</option>
         <option value="basic">Basic</option>
         <option value="pro">Pro</option>
-        <option value="premium">Premium</option>
-        <option value="trial">Trial</option>
       </select>
-      <select class="inp" id="adm-filter-status"
-        style="max-width:160px;flex:0 0 auto" onchange="filterEmpresas()">
+      <select class="inp" id="adm-filter-status" style="max-width:160px" onchange="filterEmpresas()">
         <option value="">Todos os status</option>
         <option value="ativo">Ativo</option>
-        <option value="inativo">Bloqueado / Inativo</option>
+        <option value="inativo">Inativo</option>
       </select>
-      <span style="margin-left:auto;font-size:.72rem;color:#374151;white-space:nowrap" id="adm-count">—</span>
+      <span style="margin-left:auto;font-size:.75rem;color:#4b5563" id="adm-count">— empresas</span>
     </div>
 
-    <!-- Tabela -->
+    <!-- Table -->
     <div class="card" style="overflow:hidden">
       <div style="overflow-x:auto">
-        <table>
+        <table id="adm-table">
           <thead>
             <tr>
               <th>Empresa</th>
+              <th>Email</th>
               <th>Plano</th>
               <th>Expira</th>
               <th>Vendas/mês</th>
-              <th>Usuários</th>
               <th>Status</th>
               <th>Cadastro</th>
-              <th style="text-align:right;padding-right:1.25rem">Ações</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody id="adm-tbody">
-            <tr><td colspan="8" style="text-align:center;color:#374151;padding:2.5rem">
-              <i class="fas fa-spinner fa-spin"></i> Carregando...
-            </td></tr>
+            <tr><td colspan="8" style="text-align:center;color:#4b5563;padding:2rem">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -151,199 +111,92 @@ tr:hover td{background:rgba(255,255,255,.015);}
   </div>
 </div>
 
-<!-- MODAL CRIAR EMPRESA -->
-<div id="modal-criar" class="overlay" onclick="if(event.target===this)closeCriar()">
-  <div class="card modal-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <h2 style="font-size:.95rem;font-weight:900">
-        <i class="fas fa-building" style="color:#3b82f6;margin-right:.45rem"></i>Nova Empresa
-      </h2>
-      <button class="close-btn" onclick="closeCriar()">✕</button>
-    </div>
-
-    <div id="criar-err" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
-      color:#f87171;border-radius:.75rem;padding:.75rem;font-size:.8rem;margin-bottom:.75rem;display:none"></div>
-
-    <label class="lbl">Nome da Empresa *</label>
-    <input class="inp" id="criar-nome" placeholder="Ex: Loja do João" style="margin-bottom:.85rem">
-
-    <label class="lbl">Email do Dono *</label>
-    <input class="inp" id="criar-email" type="email" placeholder="dono@empresa.com" style="margin-bottom:.85rem">
-
-    <label class="lbl">Senha inicial *</label>
-    <input class="inp" id="criar-pass" type="password" placeholder="Mínimo 6 caracteres" style="margin-bottom:.85rem">
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem">
-      <div>
-        <label class="lbl">Plano</label>
-        <select class="inp" id="criar-plano">
-          <option value="free">Free — Grátis</option>
-          <option value="basic">Basic — R$49/mês</option>
-          <option value="pro" selected>Pro — R$99/mês</option>
-          <option value="premium">Premium — R$199/mês</option>
-        </select>
-      </div>
-      <div>
-        <label class="lbl">Status</label>
-        <select class="inp" id="criar-status">
-          <option value="ativo">✅ Ativo</option>
-          <option value="inativo">🚫 Inativo</option>
-        </select>
-      </div>
-    </div>
-
-    <label class="lbl">Expiração do Plano</label>
-    <input class="inp" id="criar-expira" type="date" style="margin-bottom:1.25rem">
-
-    <div style="display:flex;gap:.75rem">
-      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeCriar()">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1;justify-content:center" id="btn-criar-save" onclick="salvarCriar()">
-        <i class="fas fa-plus"></i> Criar Empresa
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL EDITAR EMPRESA -->
-<div id="modal-editar" class="overlay" onclick="if(event.target===this)closeEditar()">
-  <div class="card modal-box" style="max-width:500px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <h2 style="font-size:.95rem;font-weight:900" id="edit-title">
-        <i class="fas fa-pen" style="color:#3b82f6;margin-right:.45rem"></i>Editar Empresa
-      </h2>
-      <button class="close-btn" onclick="closeEditar()">✕</button>
+<div id="adm-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:1rem">
+  <div class="card" style="width:100%;max-width:440px;padding:2rem">
+    <h2 style="font-size:1rem;font-weight:900;margin-bottom:1.25rem" id="adm-modal-title">Editar Empresa</h2>
+
+    <div style="margin-bottom:.75rem">
+      <label style="font-size:.75rem;color:#6b7280;font-weight:700">Nome da empresa</label>
+      <input class="inp" id="edit-nome" style="margin-top:.25rem">
     </div>
 
-    <label class="lbl">Nome da Empresa</label>
-    <input class="inp" id="edit-nome" style="margin-bottom:.9rem">
-
-    <div class="divider"></div>
-    <p style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-              color:#3b82f6;margin-bottom:.75rem">
-      <i class="fas fa-tags"></i> Plano &amp; Expiração
-    </p>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
-      <div>
-        <label class="lbl">Plano</label>
-        <select class="inp" id="edit-plano">
-          <option value="free">Free — Grátis</option>
-          <option value="basic">Basic — R$49</option>
-          <option value="pro">Pro — R$99</option>
-          <option value="premium">Premium — R$199</option>
-        </select>
-      </div>
-      <div>
-        <label class="lbl">Expira em</label>
-        <input class="inp" id="edit-expira" type="date">
-      </div>
+    <div style="margin-bottom:.75rem">
+      <label style="font-size:.75rem;color:#6b7280;font-weight:700">Plano</label>
+      <select class="inp" id="edit-plano" style="margin-top:.25rem">
+        <option value="free">Free (Grátis)</option>
+        <option value="basic">Basic (R$49/mês)</option>
+        <option value="pro">Pro (R$99/mês)</option>
+      </select>
     </div>
 
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem">
-      <button class="btn btn-sm btn-ghost" onclick="addDias(30)">+30 dias</button>
-      <button class="btn btn-sm btn-ghost" onclick="addDias(90)">+90 dias</button>
-      <button class="btn btn-sm btn-ghost" onclick="addDias(180)">+180 dias</button>
-      <button class="btn btn-sm btn-ghost" onclick="addDias(365)">+1 ano</button>
+    <div style="margin-bottom:.75rem">
+      <label style="font-size:.75rem;color:#6b7280;font-weight:700">Data de expiração do plano</label>
+      <input class="inp" id="edit-expira" type="date" style="margin-top:.25rem">
     </div>
 
-    <div class="divider"></div>
-    <p style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
-              color:#ef4444;margin-bottom:.75rem">
-      <i class="fas fa-shield-alt"></i> Status da Conta
-    </p>
-
-    <div style="display:flex;gap:.65rem;margin-bottom:.9rem" id="edit-status-btns"></div>
-
-    <div id="edit-info"
-      style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
-             border-radius:.75rem;padding:.7rem .9rem;font-size:.73rem;color:#6b7280;
-             line-height:1.8;margin-bottom:1rem"></div>
+    <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem">
+      <label style="font-size:.75rem;color:#6b7280;font-weight:700">Conta ativa</label>
+      <label style="position:relative;display:inline-block;width:44px;height:24px;margin-left:auto">
+        <input type="checkbox" id="edit-ativo" style="opacity:0;width:0;height:0">
+        <span onclick="document.getElementById('edit-ativo').checked=!document.getElementById('edit-ativo').checked"
+          style="position:absolute;inset:0;background:#334155;border-radius:24px;cursor:pointer;transition:.3s"></span>
+      </label>
+    </div>
 
     <div style="display:flex;gap:.75rem">
-      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeEditar()">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1;justify-content:center" id="btn-edit-save" onclick="salvarEditar()">
-        <i class="fas fa-save"></i> Salvar
-      </button>
+      <button class="btn" style="flex:1;background:rgba(255,255,255,.05);color:#94a3b8" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveEmpresa()">Salvar</button>
     </div>
   </div>
 </div>
 
 <script type="module">
-/* ─── CONFIG ────────────────────────────────────────────────────── */
+/* ─── ATENÇÃO: copie a mesma config do saas-auth.js ─────────────── */
 import { initializeApp, getApps, getApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut, onAuthStateChanged,
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, collection, getDocs, doc, setDoc, updateDoc,
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  getFirestore, collection, getDocs, doc, updateDoc, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ADMIN_CONFIG = {
-  apiKey:            'AIzaSyBwIYy2lsE5l7kPlNg6BHJMrFk6pH2uO28',
-  authDomain:        'meu-pdv-saas.firebaseapp.com',
-  projectId:         'meu-pdv-saas',
-  storageBucket:     'meu-pdv-saas.firebasestorage.app',
-  messagingSenderId: '722034622350',
-  appId:             '1:722034622350:web:9f0001fe5b850c6b8aeedf',
+    apiKey:            "AIzaSyBwIYy2lsE5l7kPlNg6BHJMrFk6pH2uO28",
+  authDomain:        "meu-pdv-saas.firebaseapp.com",
+  projectId:         "meu-pdv-saas",
+  storageBucket:     "meu-pdv-saas.firebasestorage.app",
+  messagingSenderId: "722034622350",
+  appId:             "1:722034622350:web:9f0001fe5b850c6b8aeedf",
 };
-const ADMIN_UID = 'Af5eqSaPqVOfqvDCVG8Q3zP3r812';
+const ADMIN_UID = "Af5eqSaPqVOfqvDCVG8Q3zP3r812"; // Defina após primeiro login
 
 const _app  = getApps().length ? getApp() : initializeApp(ADMIN_CONFIG);
 const _auth = getAuth(_app);
 const _db   = getFirestore(_app);
 
-/* ─── PLANOS ────────────────────────────────────────────────────── */
-const PLANOS = {
-  free:    { label: 'Free',    preco: 0,     cor: '#6b7280', usuarios: 1,  vendasMes: 200,      delivery: false, ia: false },
-  basic:   { label: 'Basic',   preco: 4900,  cor: '#3b82f6', usuarios: 3,  vendasMes: 2000,     delivery: true,  ia: false },
-  pro:     { label: 'Pro',     preco: 9900,  cor: '#a855f7', usuarios: 10, vendasMes: Infinity, delivery: true,  ia: true  },
-  premium: { label: 'Premium', preco: 19900, cor: '#f59e0b', usuarios: 50, vendasMes: Infinity, delivery: true,  ia: true  },
+const PLANOS_CORES = {
+  free:  '#6b7280',
+  basic: '#3b82f6',
+  pro:   '#a855f7',
+  trial_basic: '#f59e0b',
+  trial_pro:   '#f59e0b',
 };
 
-function _planoCor(key) {
-  if ((key || '').startsWith('trial')) return '#f59e0b';
-  return PLANOS[key]?.cor || '#6b7280';
-}
+let _allEmpresas = [];
+let _editUid     = null;
 
-function _mesKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-/* ─── ESTADO ────────────────────────────────────────────────────── */
-let _all      = [];   // todas as empresas
-let _editId   = null;
-let _editStat = 'ativo';
-
-/* ─── TOAST ─────────────────────────────────────────────────────── */
-function toast(msg, type = 'ok') {
-  const COLS = { ok: '#10b981', err: '#ef4444', warn: '#f59e0b' };
-  const el = document.getElementById('g-toast');
-  el.style.background = COLS[type] || COLS.ok;
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._tid);
-  el._tid = setTimeout(() => el.classList.remove('show'), 3400);
-}
-
-/* ─── AUTH ──────────────────────────────────────────────────────── */
+/* ─── AUTH ─────────────────────────────────────────────────────── */
 window.admLogin = async () => {
-  const btn   = document.getElementById('adm-login-btn');
   const email = document.getElementById('adm-email').value.trim();
   const pass  = document.getElementById('adm-pass').value;
-  const errEl = document.getElementById('adm-err');
-  errEl.style.display = 'none';
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
   try {
     await signInWithEmailAndPassword(_auth, email, pass);
-  } catch (e) {
-    errEl.textContent   = e.message;
-    errEl.style.display = '';
-    btn.disabled        = false;
-    btn.innerHTML       = '<i class="fas fa-shield-alt"></i> Entrar como Admin';
+  } catch (err) {
+    const el = document.getElementById('adm-err');
+    el.textContent = err.message;
+    el.style.display = '';
   }
 };
 
@@ -351,321 +204,150 @@ window.admLogout = () => signOut(_auth);
 
 onAuthStateChanged(_auth, async (user) => {
   if (!user) {
-    document.getElementById('adm-login').style.display     = 'flex';
+    document.getElementById('adm-login').style.display    = 'flex';
     document.getElementById('adm-dashboard').style.display = 'none';
-    const btn = document.getElementById('adm-login-btn');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-shield-alt"></i> Entrar como Admin';
     return;
   }
 
-  if (ADMIN_UID !== 'Af5eqSaPqVOfqvDCVG8Q3zP3r812' && user.uid !== ADMIN_UID) {
-    alert('Acesso negado.');
+  // Verificar se é admin
+  if (ADMIN_UID !== "Af5eqSaPqVOfqvDCVG8Q3zP3r812" && user.uid !== ADMIN_UID) {
+    alert('Acesso negado. Conta não autorizada como admin.');
     await signOut(_auth);
     return;
   }
 
-  document.getElementById('adm-login').style.display     = 'none';
+  document.getElementById('adm-login').style.display    = 'none';
   document.getElementById('adm-dashboard').style.display = '';
-  document.getElementById('adm-uid-label').textContent   =
-    `Admin: ${user.email} | uid: ${user.uid}`;
+  document.getElementById('adm-uid-label').textContent   = `uid: ${user.uid}`;
 
   await loadEmpresas();
 });
 
-/* ─── CARREGAR EMPRESAS ──────────────────────────────────────────── */
+/* ─── LOAD EMPRESAS ─────────────────────────────────────────────── */
 window.loadEmpresas = async () => {
-  const btn = document.getElementById('btn-refresh');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
-
   try {
-    const [empSnap, usrSnap] = await Promise.all([
-      getDocs(collection(_db, 'empresas')),
-      getDocs(collection(_db, 'usuarios')),
-    ]);
-
-    // contagem de usuários por empresa
-    const uCount = {};
-    usrSnap.docs.forEach(d => {
-      const eid = d.data().empresaId;
-      if (eid) uCount[eid] = (uCount[eid] || 0) + 1;
-    });
-
-    _all = empSnap.docs
-      .map(d => ({ empresaId: d.id, _uCount: uCount[d.id] || 0, ...d.data() }))
-      .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
-
+    const snap = await getDocs(collection(_db, 'empresas'));
+    _allEmpresas = snap.docs.map(d => ({ empresaId: d.id, ...d.data() }));
+    _allEmpresas.sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+    console.info('[Admin] empresas carregadas:', _allEmpresas.length);
     renderStats();
-    renderTable(_all);
-    toast(`${_all.length} empresa(s) carregada(s)`);
+    renderTable(_allEmpresas);
   } catch (err) {
-    toast('Erro ao carregar: ' + err.message, 'err');
-    console.error(err);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-sync-alt"></i> Atualizar';
+    console.error('loadEmpresas:', err);
   }
 };
 
-/* ─── STATS ──────────────────────────────────────────────────────── */
+/* ─── STATS ─────────────────────────────────────────────────────── */
 function renderStats() {
-  const total   = _all.length;
-  const ativos  = _all.filter(e => e.status === 'ativo').length;
-  const bloq    = total - ativos;
-  const cnt     = { free: 0, basic: 0, pro: 0, premium: 0, trial: 0 };
-
-  _all.forEach(e => {
-    const pk = (e.plano || '').startsWith('trial') ? 'trial'
-             : (e.planoReal || e.plano || 'free');
-    if (pk in cnt) cnt[pk]++;
+  const total   = _allEmpresas.length;
+  const ativos  = _allEmpresas.filter(e => e.status === 'ativo').length;
+  const byPlano = { free: 0, basic: 0, pro: 0, trial: 0 };
+  _allEmpresas.forEach(e => {
+    const k = (e.plano || '').includes('trial') ? 'trial'
+            : (e.plano || 'free');
+    if (k in byPlano) byPlano[k]++;
   });
 
   document.getElementById('adm-stats').innerHTML = [
-    sc('🏢', 'Total',   total,       '#3b82f6'),
-    sc('✅', 'Ativos',  ativos,      '#10b981'),
-    sc('🚫', 'Bloq.',   bloq,        '#ef4444'),
-    sc('🆓', 'Free',    cnt.free,    '#6b7280'),
-    sc('💙', 'Basic',   cnt.basic,   '#3b82f6'),
-    sc('💜', 'Pro',     cnt.pro,     '#a855f7'),
-    sc('🏆', 'Premium', cnt.premium, '#f59e0b'),
-    sc('⏳', 'Trial',   cnt.trial,   '#f59e0b'),
+    stat('🏢', 'Total', total, '#3b82f6'),
+    stat('✅', 'Ativos', ativos, '#10b981'),
+    stat('🆓', 'Free', byPlano.free, '#6b7280'),
+    stat('💙', 'Basic', byPlano.basic, '#3b82f6'),
+    stat('💜', 'Pro', byPlano.pro, '#a855f7'),
+    stat('⏳', 'Trial', byPlano.trial, '#f59e0b'),
   ].join('');
 }
 
-function sc(icon, label, val, cor) {
-  return `<div class="stat-card">
-    <div style="font-size:1.3rem;margin-bottom:.3rem">${icon}</div>
-    <div style="font-size:1.5rem;font-weight:900;color:${cor};line-height:1">${val}</div>
-    <div style="font-size:.65rem;color:#374151;font-weight:800;text-transform:uppercase;
-                letter-spacing:.06em;margin-top:.25rem">${label}</div>
+function stat(icon, label, val, cor) {
+  return `
+  <div class="stat-card">
+    <div style="font-size:1.5rem;margin-bottom:.25rem">${icon}</div>
+    <div style="font-size:1.5rem;font-weight:900;color:${cor}">${val}</div>
+    <div style="font-size:.7rem;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em">${label}</div>
   </div>`;
 }
 
-/* ─── TABELA ──────────────────────────────────────────────────────── */
+/* ─── TABLE ─────────────────────────────────────────────────────── */
 function renderTable(list) {
-  document.getElementById('adm-count').textContent =
-    `${list.length} empresa${list.length !== 1 ? 's' : ''}`;
+  document.getElementById('adm-count').textContent = `${list.length} empresa${list.length !== 1 ? 's' : ''}`;
 
   if (!list.length) {
     document.getElementById('adm-tbody').innerHTML =
-      `<tr><td colspan="8" style="text-align:center;color:#374151;padding:2.5rem">
-        <i class="fas fa-search"></i> Nenhuma empresa encontrada.
-       </td></tr>`;
+      '<tr><td colspan="8" style="text-align:center;color:#4b5563;padding:2rem">Nenhuma empresa encontrada.</td></tr>';
     return;
   }
 
   document.getElementById('adm-tbody').innerHTML = list.map(e => {
-    const pk      = e.planoReal || e.plano || 'free';
-    const cor     = _planoCor(pk);
-    const ativo   = e.status === 'ativo';
-    const expStr  = e.planoExpira
-      ? new Date(e.planoExpira).toLocaleDateString('pt-BR') : '—';
-    const expirou = e.planoExpira && new Date(e.planoExpira) < new Date();
-    const crtStr  = e.criadoEm
-      ? new Date(e.criadoEm).toLocaleDateString('pt-BR') : '—';
-    const limUsr  = e.limites?.usuarios ?? (PLANOS[pk]?.usuarios ?? 1);
+    const planoKey    = e.planoReal || e.plano || 'free';
+    const planoCor    = PLANOS_CORES[e.plano || 'free'] || '#6b7280';
+    const ativo       = e.status === 'ativo';
+    const expira      = e.planoExpira ? new Date(e.planoExpira).toLocaleDateString('pt-BR') : '—';
+    const expirado    = e.planoExpira && new Date(e.planoExpira) < new Date();
+    const criado      = e.criadoEm ? new Date(e.criadoEm).toLocaleDateString('pt-BR') : '—';
+    const vendas      = e.vendasMes || 0;
 
-    return `<tr>
-      <td>
-        <div style="font-weight:800;color:#f1f5f9;margin-bottom:2px">${e.nome || '—'}</div>
-        <div style="font-size:.68rem;color:#374151;font-family:monospace">${e.empresaId}</div>
-        <div style="font-size:.68rem;color:#4b5563;margin-top:1px">${e.email || ''}</div>
+    return `
+    <tr>
+      <td><span style="font-weight:700">${e.nome || '—'}</span></td>
+      <td style="color:#94a3b8;font-size:.78rem">
+        <div>${e.email || '—'}</div>
+        <div style="color:#374151;font-size:.68rem;font-family:monospace;margin-top:2px">${e.empresaId}</div>
       </td>
       <td>
-        <span class="badge" style="background:${cor}22;color:${cor}">
-          ${pk.toUpperCase()}
+        <span class="badge" style="background:${planoCor}22;color:${planoCor}">
+          ${(e.plano || 'free').toUpperCase()}
         </span>
       </td>
-      <td style="font-size:.75rem;color:${expirou ? '#f87171' : '#6b7280'}">
-        ${expStr}${expirou ? ' ⚠️' : ''}
+      <td style="${expirado ? 'color:#f87171' : 'color:#94a3b8'};font-size:.8rem">
+        ${expira}${expirado ? ' ⚠️' : ''}
       </td>
-      <td style="color:#6b7280;font-size:.78rem">
-        ${(e.vendasMes || 0).toLocaleString('pt-BR')}
-      </td>
-      <td style="font-size:.78rem">
-        <span style="color:${e._uCount > 0 ? '#60a5fa' : '#374151'};font-weight:800">
-          ${e._uCount}
-        </span>
-        <span style="color:#374151"> / ${limUsr}</span>
-      </td>
+      <td style="color:#94a3b8;font-size:.8rem">${vendas.toLocaleString('pt-BR')}</td>
       <td>
-        <span class="badge"
-          style="background:${ativo ? 'rgba(16,185,129,.12)' : 'rgba(239,68,68,.1)'};
-                 color:${ativo ? '#34d399' : '#f87171'}">
-          ${ativo ? '● Ativo' : '● Bloqueado'}
+        <span class="badge" style="background:${ativo ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.1)'};color:${ativo ? '#34d399' : '#f87171'}">
+          ${ativo ? 'Ativo' : 'Inativo'}
         </span>
       </td>
-      <td style="color:#374151;font-size:.75rem">${crtStr}</td>
-      <td style="text-align:right;padding-right:1.1rem">
-        <div style="display:flex;gap:.4rem;justify-content:flex-end">
-          ${ativo
-            ? `<button class="btn btn-sm btn-danger"
-                onclick="toggleStatus('${e.empresaId}',false)"
-                title="Bloquear empresa">
-                <i class="fas fa-ban"></i> Bloquear
-               </button>`
-            : `<button class="btn btn-sm btn-success"
-                onclick="toggleStatus('${e.empresaId}',true)"
-                title="Ativar empresa">
-                <i class="fas fa-check"></i> Ativar
-               </button>`
-          }
-          <button class="btn btn-sm btn-ghost"
-            onclick="openEditar('${e.empresaId}')"
-            title="Editar empresa">
-            <i class="fas fa-pen"></i>
-          </button>
-        </div>
+      <td style="color:#6b7280;font-size:.78rem">${criado}</td>
+      <td>
+        <button class="btn btn-sm" style="background:rgba(59,130,246,.15);color:#60a5fa"
+          onclick="openModal('${e.empresaId}')">
+          <i class="fa fa-edit"></i> Editar
+        </button>
       </td>
     </tr>`;
   }).join('');
 }
 
-/* ─── FILTROS ────────────────────────────────────────────────────── */
+/* ─── FILTER ─────────────────────────────────────────────────────── */
 window.filterEmpresas = () => {
-  const q  = document.getElementById('adm-search').value.toLowerCase();
-  const fp = document.getElementById('adm-filter-plano').value;
-  const fs = document.getElementById('adm-filter-status').value;
+  const q      = document.getElementById('adm-search').value.toLowerCase();
+  const plano  = document.getElementById('adm-filter-plano').value;
+  const status = document.getElementById('adm-filter-status').value;
 
-  const r = _all.filter(e => {
-    const mQ = !q
-      || (e.nome     || '').toLowerCase().includes(q)
-      || (e.email    || '').toLowerCase().includes(q)
-      || (e.empresaId|| '').toLowerCase().includes(q);
-    const pk = (e.planoReal || e.plano || '');
-    const mP = !fp
-      || (fp === 'trial' ? pk.startsWith('trial') : pk.includes(fp));
-    const mS = !fs
-      || (fs === 'ativo'   && e.status === 'ativo')
-      || (fs === 'inativo' && e.status !== 'ativo');
-    return mQ && mP && mS;
+  const filtered = _allEmpresas.filter(e => {
+    const matchQ = !q ||
+      (e.nome || '').toLowerCase().includes(q) ||
+      (e.email || '').toLowerCase().includes(q);
+    const matchP = !plano || (e.planoReal || e.plano || '').includes(plano);
+    const matchS = !status ||
+      (status === 'ativo'   && e.status === 'ativo') ||
+      (status === 'inativo' && e.status !== 'ativo');
+    return matchQ && matchP && matchS;
   });
 
-  renderTable(r);
+  renderTable(filtered);
 };
 
-/* ─── BLOQUEAR / ATIVAR RÁPIDO ───────────────────────────────────── */
-window.toggleStatus = async (empresaId, ativar) => {
-  const e = _all.find(x => x.empresaId === empresaId);
-  const nm = e?.nome || empresaId;
-  if (!confirm(ativar
-    ? `Ativar a empresa "${nm}"?`
-    : `Bloquear a empresa "${nm}"?\n\nOs usuários perderão acesso imediatamente.`
-  )) return;
-
-  try {
-    await updateDoc(doc(_db, 'empresas', empresaId), {
-      status: ativar ? 'ativo' : 'inativo',
-    });
-    const idx = _all.findIndex(x => x.empresaId === empresaId);
-    if (idx !== -1) _all[idx].status = ativar ? 'ativo' : 'inativo';
-    renderStats();
-    filterEmpresas();
-    toast(ativar ? `✅ "${nm}" ativada!` : `🚫 "${nm}" bloqueada!`, ativar ? 'ok' : 'warn');
-  } catch (err) {
-    toast('Erro: ' + err.message, 'err');
-  }
-};
-
-/* ─── CRIAR EMPRESA ──────────────────────────────────────────────── */
-window.openCriar = () => {
-  document.getElementById('criar-nome').value  = '';
-  document.getElementById('criar-email').value = '';
-  document.getElementById('criar-pass').value  = '';
-  document.getElementById('criar-plano').value = 'pro';
-  document.getElementById('criar-status').value = 'ativo';
-  const d = new Date(); d.setDate(d.getDate() + 30);
-  document.getElementById('criar-expira').value = d.toISOString().substring(0,10);
-  document.getElementById('criar-err').style.display = 'none';
-  document.getElementById('modal-criar').classList.add('open');
-  setTimeout(() => document.getElementById('criar-nome').focus(), 80);
-};
-
-window.closeCriar = () =>
-  document.getElementById('modal-criar').classList.remove('open');
-
-window.salvarCriar = async () => {
-  const nome   = document.getElementById('criar-nome').value.trim();
-  const email  = document.getElementById('criar-email').value.trim();
-  const pass   = document.getElementById('criar-pass').value;
-  const plano  = document.getElementById('criar-plano').value;
-  const status = document.getElementById('criar-status').value;
-  const expira = document.getElementById('criar-expira').value;
-  const errEl  = document.getElementById('criar-err');
-  errEl.style.display = 'none';
-
-  if (!nome)             return _errCriar('Informe o nome da empresa.');
-  if (!email)            return _errCriar('Informe o email.');
-  if (!pass||pass.length<6) return _errCriar('Senha deve ter mínimo 6 caracteres.');
-
-  const btn = document.getElementById('btn-criar-save');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando...';
-
-  try {
-    // 1. Firebase Auth
-    const cred  = await createUserWithEmailAndPassword(_auth, email, pass);
-    const uid   = cred.user.uid;
-
-    // 2. empresaId único
-    const rand  = Math.random().toString(36).slice(2,8).toUpperCase();
-    const eid   = `emp_${Date.now()}_${rand}`;
-
-    // 3. empresas/{eid}
-    await setDoc(doc(_db, 'empresas', eid), {
-      nome,
-      email,
-      plano,
-      planoReal:   plano,
-      planoExpira: expira ? new Date(expira).toISOString() : null,
-      status,
-      criadoEm:    new Date().toISOString(),
-      dono:        uid,
-      vendasMes:   0,
-      mesAtual:    _mesKey(),
-      limites:     PLANOS[plano] || PLANOS.free,
-    });
-
-    // 4. usuarios/{uid}
-    await setDoc(doc(_db, 'usuarios', uid), {
-      empresaId:    eid,
-      nome,
-      email,
-      cargo:        'dono',
-      criadoEm:     new Date().toISOString(),
-      ultimoAcesso: new Date().toISOString(),
-    });
-
-    closeCriar();
-    await loadEmpresas();
-    toast(`✅ Empresa "${nome}" criada com sucesso!`);
-  } catch (err) {
-    _errCriar(err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-plus"></i> Criar Empresa';
-  }
-};
-
-function _errCriar(msg) {
-  const el = document.getElementById('criar-err');
-  el.textContent = msg;
-  el.style.display = '';
-}
-
-/* ─── EDITAR EMPRESA ────────────────────────────────────────────── */
-window.openEditar = (empresaId) => {
-  const e = _all.find(x => x.empresaId === empresaId);
+/* ─── MODAL ─────────────────────────────────────────────────────── */
+window.openModal = (empresaId) => {
+  const e = _allEmpresas.find(x => x.empresaId === empresaId);
   if (!e) return;
-  _editId   = empresaId;
-  _editStat = e.status || 'ativo';
+  _editUid = empresaId;
 
-  document.getElementById('edit-title').innerHTML =
-    `<i class="fas fa-pen" style="color:#3b82f6;margin-right:.45rem"></i>Editando: ${e.nome || empresaId}`;
-  document.getElementById('edit-nome').value  = e.nome  || '';
-  document.getElementById('edit-plano').value =
-    e.planoReal || e.plano?.replace('trial_','') || 'free';
+  document.getElementById('adm-modal-title').textContent = `Editando: ${e.nome || empresaId}`;
+  document.getElementById('edit-nome').value    = e.nome || '';
+  document.getElementById('edit-plano').value   = e.planoReal || e.plano?.replace('trial_','') || 'free';
+  document.getElementById('edit-ativo').checked = e.status === 'ativo';
 
   if (e.planoExpira) {
     document.getElementById('edit-expira').value = e.planoExpira.substring(0,10);
@@ -674,89 +356,34 @@ window.openEditar = (empresaId) => {
     document.getElementById('edit-expira').value = d.toISOString().substring(0,10);
   }
 
-  _renderStatusBtns();
-
-  // Info resumida
-  const crtStr = e.criadoEm ? new Date(e.criadoEm).toLocaleString('pt-BR') : '—';
-  const vendas = (e.vendasMes || 0).toLocaleString('pt-BR');
-  document.getElementById('edit-info').innerHTML =
-    `<b>ID:</b> <span style="font-family:monospace;font-size:.7rem">${empresaId}</span><br>
-     <b>Criado:</b> ${crtStr} &nbsp;│&nbsp;
-     <b>Vendas/mês:</b> ${vendas} &nbsp;│&nbsp;
-     <b>Usuários:</b> ${e._uCount || 0}`;
-
-  document.getElementById('modal-editar').classList.add('open');
+  const modal = document.getElementById('adm-modal');
+  modal.style.display = 'flex';
 };
 
-function _renderStatusBtns() {
-  document.getElementById('edit-status-btns').innerHTML = `
-    <button class="btn btn-sm ${_editStat==='ativo' ? 'btn-success' : 'btn-ghost'}"
-      style="${_editStat==='ativo' ? 'outline:2px solid #10b981;outline-offset:1px' : ''}"
-      onclick="setEditStat('ativo')">
-      ✅ Ativo
-    </button>
-    <button class="btn btn-sm ${_editStat!=='ativo' ? 'btn-danger' : 'btn-ghost'}"
-      style="${_editStat!=='ativo' ? 'outline:2px solid #ef4444;outline-offset:1px' : ''}"
-      onclick="setEditStat('inativo')">
-      🚫 Bloquear
-    </button>`;
-}
-
-window.setEditStat = (s) => { _editStat = s; _renderStatusBtns(); };
-
-window.closeEditar = () => {
-  document.getElementById('modal-editar').classList.remove('open');
-  _editId = null;
+window.closeModal = () => {
+  document.getElementById('adm-modal').style.display = 'none';
+  _editUid = null;
 };
 
-window.addDias = (n) => {
-  const cur = document.getElementById('edit-expira').value;
-  const base = cur ? new Date(cur + 'T00:00:00') : new Date();
-  base.setDate(base.getDate() + n);
-  document.getElementById('edit-expira').value = base.toISOString().substring(0,10);
-};
-
-window.salvarEditar = async () => {
-  if (!_editId) return;
-  const nome  = document.getElementById('edit-nome').value.trim();
-  const plano = document.getElementById('edit-plano').value;
+window.saveEmpresa = async () => {
+  if (!_editUid) return;
+  const nome   = document.getElementById('edit-nome').value.trim();
+  const plano  = document.getElementById('edit-plano').value;
   const expira = document.getElementById('edit-expira').value;
-
-  const btn = document.getElementById('btn-edit-save');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  const ativo  = document.getElementById('edit-ativo').checked;
 
   try {
-    await updateDoc(doc(_db, 'empresas', _editId), {
+    await updateDoc(doc(_db, 'empresas', _editUid), {
       nome,
       plano,
       planoReal:   plano,
       planoExpira: expira ? new Date(expira).toISOString() : null,
-      status:      _editStat,
-      limites:     PLANOS[plano] || PLANOS.free,
+      status: ativo ? 'ativo' : 'inativo',
     });
-
-    // Atualiza cache local — sem refetch
-    const idx = _all.findIndex(e => e.empresaId === _editId);
-    if (idx !== -1) {
-      Object.assign(_all[idx], {
-        nome, plano, planoReal: plano,
-        planoExpira: expira ? new Date(expira).toISOString() : null,
-        status: _editStat,
-        limites: PLANOS[plano] || PLANOS.free,
-      });
-    }
-
-    closeEditar();
-    renderStats();
-    filterEmpresas();
-    toast(`✅ "${nome}" atualizada com sucesso!`);
+    closeModal();
+    await loadEmpresas();
   } catch (err) {
-    toast('Erro ao salvar: ' + err.message, 'err');
-    console.error(err);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+    alert('Erro ao salvar: ' + err.message);
   }
 };
 </script>

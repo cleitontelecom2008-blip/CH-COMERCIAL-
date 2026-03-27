@@ -81,20 +81,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── Coleção: convites ─────────────────────────────────────────────────
-    // convites/{code} → { empresaId, nomeEmpresa, cargo, criadoPor, criadoEm, expiraEm, usado }
-    //
-    // - Qualquer autenticado pode ler (valida convite antes de criar conta)
-    // - Apenas membro da empresa pode criar
-    // - Qualquer autenticado pode atualizar (marcar como usado no registro)
-    // - Exclusão: somente admin
-    match /convites/{code} {
-      allow read:   if isAuth();
-      allow create: if isEmpresaMember(request.resource.data.empresaId) || isAdmin();
-      allow update: if isAuth();
-      allow delete: if isAdmin();
-    }
-
     // ── Bloqueia todo o resto ──────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

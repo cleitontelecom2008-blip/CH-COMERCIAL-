@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDV SaaS — Assinar / Renovar Plano</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#060810;color:#f1f5f9;min-height:100vh;}
+.btn{padding:.65rem 1.25rem;border-radius:.85rem;border:none;cursor:pointer;font-size:.82rem;
+     font-weight:800;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:.45rem;}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-ghost{background:rgba(255,255,255,.06);color:#94a3b8;border:1px solid rgba(255,255,255,.09);}
+.btn-ghost:hover{background:rgba(255,255,255,.1);color:#f1f5f9;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.card{background:rgba(17,24,39,.98);border:1px solid rgba(255,255,255,.08);border-radius:1.25rem;}
+.plan-card{border:2px solid rgba(255,255,255,.07);border-radius:1.25rem;padding:1.5rem;
+           cursor:pointer;transition:all .2s;position:relative;background:rgba(17,24,39,.8);}
+.plan-card:hover{border-color:rgba(255,255,255,.18);background:rgba(17,24,39,.95);}
+.plan-card.sel{background:rgba(17,24,39,.98);}
+.plan-card.popular::before{content:'Mais Popular';position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  background:#a855f7;color:#fff;padding:2px 14px;border-radius:999px;font-size:.65rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;
+       font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
+.tab{padding:.5rem 1.1rem;border-radius:.65rem;border:none;cursor:pointer;font-size:.78rem;
+     font-weight:800;font-family:inherit;transition:all .15s;background:transparent;color:#6b7280;}
+.tab.active{background:rgba(59,130,246,.15);color:#60a5fa;}
+.gw-btn{width:100%;padding:1rem;border-radius:1rem;border:2px solid rgba(255,255,255,.08);
+        cursor:pointer;font-size:.88rem;font-weight:800;font-family:inherit;transition:all .2s;
+        background:rgba(255,255,255,.03);color:#f1f5f9;display:flex;align-items:center;
+        justify-content:center;gap:.65rem;}
+.gw-btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.05);}
+.gw-btn.sel{border-color:var(--c,#3b82f6);background:rgba(59,130,246,.08);}
+.period-btn{padding:.45rem .9rem;border-radius:.65rem;border:2px solid rgba(255,255,255,.07);
+            cursor:pointer;font-size:.75rem;font-weight:800;font-family:inherit;
+            background:transparent;color:#6b7280;transition:all .15s;}
+.period-btn:hover{border-color:rgba(255,255,255,.18);color:#94a3b8;}
+.period-btn.sel{border-color:#3b82f6;color:#60a5fa;background:rgba(59,130,246,.1);}
+.feature-row{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#94a3b8;padding:.25rem 0;}
+.feature-row i{width:16px;text-align:center;}
+.sep{height:1px;background:rgba(255,255,255,.06);margin:1rem 0;}
+.status-box{border-radius:1.25rem;padding:1.5rem;text-align:center;}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.1);
+         border-top-color:#3b82f6;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto .75rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="background:rgba(8,12,22,.98);border-bottom:1px solid rgba(255,255,255,.05);
+            padding:.9rem 1.5rem;display:flex;align-items:center;gap:.75rem">
+  <span style="font-size:1.4rem">🏪</span>
+  <div>
+    <h1 style="font-size:.95rem;font-weight:900">PDV SaaS</h1>
+    <p style="font-size:.68rem;color:#374151" id="hdr-empresa">Assinatura</p>
+  </div>
+  <div style="margin-left:auto">
+    <button class="btn btn-ghost" style="font-size:.75rem" onclick="history.back()">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </button>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="page-checkout" style="max-width:900px;margin:0 auto;padding:2rem 1rem">
+
+  <!-- Cabeçalho -->
+  <div style="text-align:center;margin-bottom:2rem">
+    <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:.5rem">
+      Escolha seu <span style="color:#3b82f6">plano</span>
+    </h2>
+    <p style="font-size:.85rem;color:#6b7280">Cancele quando quiser. Sem taxa de cancelamento.</p>
+    <!-- Plano atual -->
+    <div id="plano-atual" style="margin-top:.75rem"></div>
+  </div>
+
+  <!-- Seletor de período -->
+  <div style="display:flex;justify-content:center;gap:.5rem;margin-bottom:1.75rem"
+       id="period-selector">
+    <button class="period-btn sel" data-m="1"   onclick="selPeriod(1)">Mensal</button>
+    <button class="period-btn"    data-m="3"   onclick="selPeriod(3)">Trimestral <span style="color:#10b981;font-size:.65rem">-10%</span></button>
+    <button class="period-btn"    data-m="6"   onclick="selPeriod(6)">Semestral  <span style="color:#10b981;font-size:.65rem">-15%</span></button>
+    <button class="period-btn"    data-m="12"  onclick="selPeriod(12)">Anual      <span style="color:#f59e0b;font-size:.65rem">-20%</span></button>
+  </div>
+
+  <!-- Cards de plano -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+              gap:1rem;margin-bottom:2rem" id="plan-grid"></div>
+
+  <!-- Sumário + Pagamento -->
+  <div id="payment-section" style="display:none;max-width:520px;margin:0 auto">
+
+    <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+                color:#374151;margin-bottom:.75rem">
+      <i class="fas fa-receipt" style="margin-right:.4rem"></i>Resumo do Pedido
+    </div>
+    <div class="card" style="padding:1.25rem;margin-bottom:1.25rem" id="order-summary"></div>
+
+    <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+                color:#374151;margin-bottom:.75rem">
+      <i class="fas fa-credit-card" style="margin-right:.4rem"></i>Forma de Pagamento
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem">
+      <button class="gw-btn sel" id="gw-mp" style="--c:#00b1ea" onclick="selGateway('mercadopago')">
+        <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadopago/logo__large@2x.png"
+             alt="Mercado Pago" style="height:20px;object-fit:contain;filter:brightness(0) invert(1)">
+      </button>
+      <button class="gw-btn" id="gw-stripe" style="--c:#635bff" onclick="selGateway('stripe')">
+        <i class="fas fa-globe" style="color:#635bff"></i>
+        <span>Stripe</span>
+        <span style="font-size:.65rem;color:#6b7280;font-weight:600">Internacional</span>
+      </button>
+    </div>
+
+    <!-- Garantias -->
+    <div style="display:flex;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="flex:1;display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:#6b7280">
+        <i class="fas fa-shield-alt" style="color:#10b981"></i> Pagamento seguro e criptografado
+      </div>
+      <div style="flex:1;display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:#6b7280">
+        <i class="fas fa-undo" style="color:#10b981"></i> 7 dias de garantia
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-pagar"
+      style="width:100%;justify-content:center;padding:1rem;font-size:.92rem"
+      onclick="pagar()">
+      <i class="fas fa-lock"></i> <span id="btn-pagar-txt">Pagar com segurança</span>
+    </button>
+
+    <p style="font-size:.7rem;color:#374151;text-align:center;margin-top:.75rem">
+      Ao pagar você concorda com os <a href="#" style="color:#4b5563">Termos de Uso</a>.
+      Renovação automática — cancele a qualquer momento.
+    </p>
+  </div>
+
+</div>
+
+<!-- STATUS: processando / aprovado / erro -->
+<div id="page-status" style="display:none;min-height:100vh;display:none;
+     align-items:center;justify-content:center;padding:2rem">
+  <div class="status-box card" style="max-width:400px;width:100%;padding:2.5rem">
+    <div id="status-icon" style="font-size:3rem;margin-bottom:.75rem"></div>
+    <div id="status-title" style="font-size:1.1rem;font-weight:900;margin-bottom:.5rem"></div>
+    <div id="status-msg"   style="font-size:.82rem;color:#6b7280;line-height:1.6;margin-bottom:1.25rem"></div>
+    <div id="status-actions"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps, getApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged,
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs, onSnapshot,
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+/* ─── CONFIG — mesma do saas-auth.js ────────────────────────── */
+const FIREBASE_CONFIG = {
+  apiKey:            'AIzaSyBwIYy2lsE5l7kPlNg6BHJMrFk6pH2uO28',
+  authDomain:        'meu-pdv-saas.firebaseapp.com',
+  projectId:         'meu-pdv-saas',
+  storageBucket:     'meu-pdv-saas.firebasestorage.app',
+  messagingSenderId: '722034622350',
+  appId:             '1:722034622350:web:9f0001fe5b850c6b8aeedf',
+};
+const FUNCTIONS_REGION = 'southamerica-east1';
+const PROJECT_ID       = FIREBASE_CONFIG.projectId;
+
+const _app  = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+const _auth = getAuth(_app);
+const _db   = getFirestore(_app);
+
+/* ─── PLANOS ────────────────────────────────────────────────── */
+const PLANOS = {
+  basic: {
+    nome: 'Basic', cor: '#3b82f6', preco: 4900,
+    badge: null,
+    features: [
+      { ok: true,  txt: '2.000 vendas/mês' },
+      { ok: true,  txt: 'Módulo Delivery'  },
+      { ok: true,  txt: '3 usuários'       },
+      { ok: false, txt: 'Análise de IA'    },
+    ],
+  },
+  pro: {
+    nome: 'Pro', cor: '#a855f7', preco: 9900,
+    badge: 'popular',
+    features: [
+      { ok: true, txt: 'Vendas ilimitadas' },
+      { ok: true, txt: 'Módulo Delivery'   },
+      { ok: true, txt: '10 usuários'       },
+      { ok: true, txt: 'Análise de IA'     },
+    ],
+  },
+  premium: {
+    nome: 'Premium', cor: '#f59e0b', preco: 19900,
+    badge: null,
+    features: [
+      { ok: true, txt: 'Vendas ilimitadas'   },
+      { ok: true, txt: 'Módulo Delivery'     },
+      { ok: true, txt: '50 usuários'         },
+      { ok: true, txt: 'Análise de IA'       },
+      { ok: true, txt: 'Suporte prioritário' },
+    ],
+  },
+};
+
+const DESCONTOS = { 1: 1.00, 3: 0.90, 6: 0.85, 12: 0.80 };
+
+function calcPreco(preco, meses) {
+  return Math.round(preco * meses * DESCONTOS[meses]);
+}
+
+function fmtBRL(centavos) {
+  return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/* ─── ESTADO ────────────────────────────────────────────────── */
+let _user       = null;
+let _empresa    = null;
+let _planSel    = 'pro';
+let _meses      = 1;
+let _gateway    = 'mercadopago';
+let _unsubPag   = null;
+
+/* ─── BOOT ──────────────────────────────────────────────────── */
+onAuthStateChanged(_auth, async (user) => {
+  if (!user) {
+    window.location.href = 'index.html';
+    return;
+  }
+  _user = user;
+
+  // Carrega empresa
+  try {
+    const usnap = await getDoc(doc(_db, 'usuarios', user.uid));
+    if (usnap.exists()) {
+      const { empresaId } = usnap.data();
+      const esnap = await getDoc(doc(_db, 'empresas', empresaId));
+      if (esnap.exists()) _empresa = { empresaId, ...esnap.data() };
+    }
+  } catch (e) { console.error(e); }
+
+  // Verifica se voltou de um gateway (query params)
+  const params  = new URLSearchParams(window.location.search);
+  const status  = params.get('status');
+  const ref     = params.get('ref');
+
+  if (status) {
+    _handleRetorno(status, ref);
+  } else {
+    _initUI();
+  }
+});
+
+function _initUI() {
+  if (_empresa) {
+    document.getElementById('hdr-empresa').textContent = _empresa.nome || 'Assinatura';
+    const pk = _empresa.planoReal || _empresa.plano || 'free';
+    document.getElementById('plano-atual').innerHTML = pk !== 'free'
+      ? `<span style="font-size:.75rem;color:#6b7280">Plano atual: </span>
+         <span class="badge" style="background:${_planCor(pk)}22;color:${_planCor(pk)}">${pk.toUpperCase()}</span>`
+      : '';
+  }
+
+  // Plano sugerido via query param
+  const q = new URLSearchParams(window.location.search).get('plano');
+  if (q && PLANOS[q]) _planSel = q;
+
+  renderPlans();
+  renderPaymentSection();
+}
+
+function _planCor(k) {
+  return PLANOS[k]?.cor || '#6b7280';
+}
+
+/* ─── RENDER PLANOS ─────────────────────────────────────────── */
+window.selPeriod = (m) => {
+  _meses = m;
+  document.querySelectorAll('.period-btn').forEach(b => {
+    b.classList.toggle('sel', Number(b.dataset.m) === m);
+  });
+  renderPlans();
+  renderPaymentSection();
+};
+
+function renderPlans() {
+  document.getElementById('plan-grid').innerHTML =
+    Object.entries(PLANOS).map(([key, p]) => {
+      const total     = calcPreco(p.preco, _meses);
+      const porMes    = Math.round(total / _meses);
+      const selected  = key === _planSel;
+      const isPopular = p.badge === 'popular';
+
+      return `
+      <div class="plan-card${isPopular ? ' popular' : ''}${selected ? ' sel' : ''}"
+           style="border-color:${selected ? p.cor : 'rgba(255,255,255,.07)'};
+                  ${selected ? `box-shadow:0 0 0 1px ${p.cor}44` : ''}"
+           onclick="selPlan('${key}')">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <span class="badge" style="background:${p.cor}22;color:${p.cor}">
+            ${p.nome}
+          </span>
+          ${selected ? `<i class="fas fa-check-circle" style="color:${p.cor}"></i>` : ''}
+        </div>
+
+        <div style="margin-bottom:.5rem">
+          <span style="font-size:1.6rem;font-weight:900;color:#f1f5f9">${fmtBRL(porMes)}</span>
+          <span style="font-size:.72rem;color:#6b7280">/mês</span>
+        </div>
+        ${_meses > 1
+          ? `<div style="font-size:.7rem;color:#10b981;font-weight:700;margin-bottom:.75rem">
+               ${fmtBRL(total)} total (${Math.round((1-DESCONTOS[_meses])*100)}% off)
+             </div>`
+          : '<div style="margin-bottom:.75rem"></div>'
+        }
+
+        <div class="sep"></div>
+
+        ${p.features.map(f =>
+          `<div class="feature-row">
+             <i class="fas ${f.ok ? 'fa-check' : 'fa-times'}"
+                style="color:${f.ok ? '#10b981' : '#374151'}"></i>
+             <span style="${f.ok ? '' : 'color:#374151'}">${f.txt}</span>
+           </div>`
+        ).join('')}
+      </div>`;
+    }).join('');
+}
+
+window.selPlan = (key) => {
+  _planSel = key;
+  renderPlans();
+  renderPaymentSection();
+};
+
+/* ─── RENDER PAYMENT SECTION ─────────────────────────────────── */
+window.selGateway = (gw) => {
+  _gateway = gw;
+  document.getElementById('gw-mp').classList.toggle('sel',     gw === 'mercadopago');
+  document.getElementById('gw-stripe').classList.toggle('sel', gw === 'stripe');
+};
+
+function renderPaymentSection() {
+  const p     = PLANOS[_planSel];
+  if (!p) return;
+  const total = calcPreco(p.preco, _meses);
+  const por   = Math.round(total / _meses);
+
+  document.getElementById('order-summary').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+      <span style="font-weight:800;color:#f1f5f9">Plano ${p.nome}</span>
+      <span class="badge" style="background:${p.cor}22;color:${p.cor}">${p.nome.toUpperCase()}</span>
+    </div>
+    <div style="font-size:.78rem;color:#6b7280;margin-bottom:.75rem">
+      ${_meses === 1
+        ? 'Cobrança mensal — renova automaticamente'
+        : `${_meses} meses (${fmtBRL(por)}/mês × ${_meses})`}
+    </div>
+    <div class="sep"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.75rem">
+      <span style="font-size:.82rem;font-weight:700">Total</span>
+      <span style="font-size:1.2rem;font-weight:900;color:#f1f5f9">${fmtBRL(total)}</span>
+    </div>
+    ${DESCONTOS[_meses] < 1
+      ? `<div style="text-align:right;font-size:.7rem;color:#10b981;font-weight:700;margin-top:.2rem">
+           Você economiza ${fmtBRL(p.preco * _meses - total)} 🎉
+         </div>`
+      : ''
+    }`;
+
+  document.getElementById('btn-pagar-txt').textContent =
+    `Pagar ${fmtBRL(total)} com segurança`;
+  document.getElementById('payment-section').style.display = '';
+}
+
+/* ─── PAGAR ─────────────────────────────────────────────────── */
+window.pagar = async () => {
+  const btn = document.getElementById('btn-pagar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+  try {
+    const token = await _user.getIdToken();
+    const url   = `https://${FUNCTIONS_REGION}-${PROJECT_ID}.cloudfunctions.net/criarPagamento`;
+
+    const res   = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:  `Bearer ${token}`,
+      },
+      body: JSON.stringify({ data: { plano: _planSel, gateway: _gateway, meses: _meses } }),
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error?.message || `Erro HTTP ${res.status}`);
+    }
+
+    const json = await res.json();
+    const { pagamentoId, paymentUrl } = json.result || json;
+
+    if (!paymentUrl) throw new Error('URL de pagamento não recebida.');
+
+    sessionStorage.setItem('pdv_pag_id', pagamentoId);
+    sessionStorage.setItem('pdv_pag_plano', _planSel);
+
+    // Escuta pagamento enquanto redireciona (para retorno na mesma aba)
+    _ouvirPagamento(pagamentoId);
+
+    window.location.href = paymentUrl;
+
+  } catch (err) {
+    console.error('[Checkout]', err);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-lock"></i> <span id="btn-pagar-txt">Tentar novamente</span>';
+    _showStatus('err',
+      '❌ Erro',
+      err.message || 'Não foi possível iniciar o pagamento.',
+      [{ label: 'Voltar', fn: 'history.back()' }]
+    );
+  }
+};
+
+/* ─── LISTENER PAGAMENTO ─────────────────────────────────────── */
+function _ouvirPagamento(pagamentoId) {
+  if (typeof _unsubPag === 'function') { _unsubPag(); _unsubPag = null; }
+  _unsubPag = onSnapshot(
+    doc(_db, 'pagamentos', pagamentoId),
+    (snap) => {
+      if (!snap.exists()) return;
+      const pag = snap.data();
+      if (pag.status === 'aprovado') {
+        _handleRetorno('success', pagamentoId);
+        if (typeof _unsubPag === 'function') { _unsubPag(); _unsubPag = null; }
+      }
+    }
+  );
+}
+
+/* ─── RETORNO DO GATEWAY ─────────────────────────────────────── */
+function _handleRetorno(status, ref) {
+  document.getElementById('page-checkout').style.display = 'none';
+
+  if (status === 'success') {
+    _showStatus('wait',
+      '⏳ Confirmando pagamento...',
+      'Aguarde enquanto confirmamos seu pagamento. Isso leva alguns segundos.',
+      []
+    );
+    const id = ref || sessionStorage.getItem('pdv_pag_id');
+    if (id) {
+      _ouvirPagamento(id);
+      // Timeout de segurança: se em 30s não confirmou, mostra botão de suporte
+      setTimeout(() => {
+        _showStatus('warn',
+          '⏳ Aguardando confirmação',
+          'Seu pagamento foi recebido e está sendo processado. Você receberá uma confirmação em breve.',
+          [
+            { label: '↩ Voltar ao sistema', fn: "window.location.href='index.html'" },
+          ]
+        );
+      }, 30_000);
+    }
+  } else if (status === 'failure' || status === 'cancel') {
+    _showStatus('err',
+      '❌ Pagamento não concluído',
+      'Seu pagamento foi cancelado ou recusado. Você pode tentar novamente.',
+      [
+        { label: '🔄 Tentar novamente', fn: '_resetCheckout()' },
+        { label: '↩ Voltar', fn: "history.back()" },
+      ]
+    );
+  } else if (status === 'pending') {
+    _showStatus('warn',
+      '⏳ Pagamento pendente',
+      'Seu pagamento está sendo analisado. Você receberá um email quando for aprovado.',
+      [{ label: '↩ Voltar ao sistema', fn: "window.location.href='index.html'" }]
+    );
+  }
+}
+
+/* ─── APROVADO ───────────────────────────────────────────────── */
+function _onAprovado(plano) {
+  sessionStorage.removeItem('pdv_pag_id');
+  sessionStorage.removeItem('pdv_pag_plano');
+  _showStatus('ok',
+    '✅ Pagamento aprovado!',
+    `Seu plano ${(plano || '').toUpperCase()} foi ativado com sucesso. Bom trabalho! 🎉`,
+    [{ label: '🚀 Abrir o sistema', fn: "window.location.href='index.html'" }]
+  );
+}
+
+window._resetCheckout = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('status');
+  url.searchParams.delete('ref');
+  window.location.href = url.toString();
+};
+
+/* ─── STATUS BOX ─────────────────────────────────────────────── */
+function _showStatus(type, title, msg, actions) {
+  const ICONS = {
+    ok:   '<div class="spinner" style="border-top-color:#10b981"></div>',
+    wait: '<div class="spinner"></div>',
+    warn: '<div class="spinner" style="border-top-color:#f59e0b"></div>',
+    err:  '<div style="font-size:3rem">❌</div>',
+  };
+  const BORDS = { ok: '#10b981', wait: '#3b82f6', warn: '#f59e0b', err: '#ef4444' };
+
+  const pg = document.getElementById('page-status');
+  pg.style.display = 'flex';
+  pg.querySelector('.status-box').style.borderColor = BORDS[type] + '44';
+
+  document.getElementById('status-icon').innerHTML  = ICONS[type];
+  document.getElementById('status-title').textContent = title;
+  document.getElementById('status-msg').textContent   = msg;
+  document.getElementById('status-actions').innerHTML =
+    actions.map(a =>
+      `<button class="btn btn-${a.label.includes('Abrir') ? 'primary' : 'ghost'}"
+               style="width:100%;justify-content:center;margin-bottom:.5rem"
+               onclick="${a.fn}">${a.label}</button>`
+    ).join('');
+
+  if (type === 'ok') {
+    // Para o spinner quando aprovado
+    setTimeout(() => {
+      document.getElementById('status-icon').innerHTML = '<div style="font-size:3rem">🎉</div>';
+    }, 500);
+  }
+}
+
+/* ─── AUTO-CHECK RETORNO ─────────────────────────────────────── */
+// Se há ref salvo na sessão (voltou de outra aba / não foi redirecionado)
+window.addEventListener('DOMContentLoaded', () => {
+  const savedId    = sessionStorage.getItem('pdv_pag_id');
+  const savedPlano = sessionStorage.getItem('pdv_pag_plano');
+  const params     = new URLSearchParams(window.location.search);
+
+  if (savedId && !params.get('status')) {
+    // Escuta silenciosamente caso o pagamento seja aprovado no retorno
+    onAuthStateChanged(_auth, (u) => {
+      if (!u) return;
+      onSnapshot(doc(_db, 'pagamentos', savedId), (snap) => {
+        if (!snap.exists()) return;
+        if (snap.data().status === 'aprovado') _onAprovado(savedPlano);
+      });
+    });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+rules_version = '2';
+
+/**
+ * PDV SaaS — Firestore Security Rules PRODUÇÃO
+ * Version: 3.0.0
+ *
+ * Estrutura final:
+ *   admins/          → UIDs com acesso admin ao painel
+ *   empresas/        → Cadastro e plano de cada empresa
+ *   usuarios/        → Vínculo usuário ↔ empresa
+ *   saas_dados/      → Dados PDV por empresa (vendas, estoque, etc.)
+ *   vendas/          → Histórico de vendas (futuro: subcoleção por empresa)
+ *   fiado/           → Registros de fiado por empresa
+ *   delivery/        → Pedidos de delivery por empresa
+ *   pagamentos/      → Histórico de pagamentos SaaS
+ *   logs/            → Auditoria: logs/{empresaId}/eventos/{autoId}
+ *   planosVencidos/  → Log de bloqueios automáticos (cron)
+ *   convites/        → Convites para colaboradores
+ *
+ * Princípio: menor privilégio.
+ * Cloud Functions usam Admin SDK — ignoram estas regras.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ══════════════════════════════════════════════════════════════
+    // HELPERS
+    // ══════════════════════════════════════════════════════════════
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isOwner(docUid) {
+      return isAuth() && uid() == docUid;
+    }
+
+    // Admin é qualquer uid presente em admins/{uid}
+    function isAdmin() {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/admins/$(uid()));
+    }
+
+    // Obtém o empresaId do usuário via coleção usuarios (1 leitura extra)
+    function userEmpresaId() {
+      return get(/databases/$(database)/documents/usuarios/$(uid())).data.empresaId;
+    }
+
+    // Verdadeiro se o usuário é membro da empresa do documento
+    function isEmpresaMember(empresaId) {
+      return isAuth() && userEmpresaId() == empresaId;
+    }
+
+    // Campos que só admin pode alterar na coleção empresas
+    function tocaCamposReservados() {
+      let reservados = [
+        'plano', 'planoReal', 'planoExpira', 'status',
+        'criadoEm', 'dono', 'limites', 'ultimoPagamento',
+        'vencidoEm', 'diasVencido', 'planoAnterior',
+      ];
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasAny(reservados);
+    }
+
+    // Campos imutáveis de usuarios
+    function tocaCamposReservadosUsuario() {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasAny(['empresaId', 'cargo', 'criadoEm']);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // admins/{adminId}
+    // Apenas admins leem/escrevem — bootstrapped manualmente
+    // ══════════════════════════════════════════════════════════════
+    match /admins/{adminId} {
+      allow read:   if isAdmin();
+      allow write:  if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // empresas/{empresaId}
+    // { nome, email, plano, planoReal, planoExpira, status,
+    //   criadoEm, dono, vendasMes, mesAtual, limites, origem }
+    // ══════════════════════════════════════════════════════════════
+    match /empresas/{empresaId} {
+      // Membro da empresa ou admin podem ler
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+
+      // Qualquer autenticado pode criar (cadastro novo / trigger)
+      allow create: if isAuth();
+
+      // Membro pode atualizar campos não-reservados (nome, vendasMes, etc.)
+      // Admin pode atualizar tudo
+      allow update: if isAdmin()
+                    || (isEmpresaMember(empresaId) && !tocaCamposReservados());
+
+      // Só admin pode excluir
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // usuarios/{uid}
+    // { empresaId, nome, email, cargo, criadoEm, ultimoAcesso }
+    // ══════════════════════════════════════════════════════════════
+    match /usuarios/{userId} {
+      allow read:   if isOwner(userId) || isAdmin();
+
+      // Próprio usuário ou admin criam
+      allow create: if isOwner(userId) || isAdmin();
+
+      // Próprio usuário atualiza, exceto campos reservados
+      allow update: if isAdmin()
+                    || (isOwner(userId) && !tocaCamposReservadosUsuario());
+
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // saas_dados/{empresaId}
+    // Dados PDV completos (vendas, estoque, inventário, etc.)
+    // Isolado por empresa — mesmo formato do CH Geladas
+    // ══════════════════════════════════════════════════════════════
+    match /saas_dados/{empresaId} {
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+      allow create: if isEmpresaMember(empresaId) || isAdmin();
+      allow update: if isEmpresaMember(empresaId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // vendas/{empresaId}/registros/{vendaId}
+    // Histórico detalhado de vendas por empresa (subcoleção)
+    // { empresaId, itens, total, formaPagamento, uid, criadoEm }
+    // ══════════════════════════════════════════════════════════════
+    match /vendas/{empresaId} {
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+      allow write:  if false; // somente via saas_dados ou Cloud Functions
+
+      match /registros/{vendaId} {
+        allow read:   if isEmpresaMember(empresaId) || isAdmin();
+        allow create: if isEmpresaMember(empresaId);
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // fiado/{empresaId}/registros/{fiadoId}
+    // Controle de fiado por empresa
+    // { cliente, valor, descricao, pago, criadoEm, uid }
+    // ══════════════════════════════════════════════════════════════
+    match /fiado/{empresaId} {
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+      allow write:  if false;
+
+      match /registros/{fiadoId} {
+        allow read:   if isEmpresaMember(empresaId) || isAdmin();
+        allow create: if isEmpresaMember(empresaId);
+        allow update: if isEmpresaMember(empresaId);
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // delivery/{empresaId}/pedidos/{pedidoId}
+    // Módulo de delivery por empresa
+    // { cliente, itens, total, status, endereco, criadoEm }
+    // ══════════════════════════════════════════════════════════════
+    match /delivery/{empresaId} {
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+      allow write:  if false;
+
+      match /pedidos/{pedidoId} {
+        allow read:   if isEmpresaMember(empresaId) || isAdmin();
+        allow create: if isEmpresaMember(empresaId);
+        allow update: if isEmpresaMember(empresaId);
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // pagamentos/{pagamentoId}
+    // Histórico de assinaturas SaaS
+    // { empresaId, uid, plano, valor, meses, gateway,
+    //   gatewayId, paymentUrl, status, criadoEm }
+    // ══════════════════════════════════════════════════════════════
+    match /pagamentos/{pagId} {
+      // Dono do pagamento ou membro da empresa ou admin podem ler
+      allow read:   if isAuth() && (
+                      resource.data.uid == uid() ||
+                      isEmpresaMember(resource.data.empresaId) ||
+                      isAdmin()
+                    );
+
+      // Criação pelo client (fallback) ou Cloud Function (Admin SDK)
+      allow create: if isAuth();
+
+      // Atualização de status: somente admin / Cloud Functions
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // logs/{empresaId}/eventos/{autoId}
+    // Auditoria de ações por empresa
+    // { tipo, acao, detalhes, uid, ts, tsIso }
+    // ══════════════════════════════════════════════════════════════
+    match /logs/{empresaId} {
+      allow read:   if isEmpresaMember(empresaId) || isAdmin();
+      allow write:  if false; // somente Cloud Functions (Admin SDK)
+
+      match /eventos/{eventoId} {
+        allow read:   if isEmpresaMember(empresaId) || isAdmin();
+        allow write:  if false; // somente Cloud Functions (Admin SDK)
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // planosVencidos/{docId}
+    // Log de bloqueios do cron verificarPlanos
+    // { empresaId, nome, plano, planoExpira, bloqueadoEm, diasVencido }
+    // ══════════════════════════════════════════════════════════════
+    match /planosVencidos/{docId} {
+      allow read:  if isAdmin();
+      allow write: if false; // somente Cloud Functions (Admin SDK)
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // convites/{code}
+    // Convites para colaboradores entrarem na empresa
+    // { empresaId, nomeEmpresa, cargo, criadoPor, criadoEm,
+    //   expiraEm, usado, usadoPor?, usadoEm? }
+    // ══════════════════════════════════════════════════════════════
+    match /convites/{code} {
+      // Qualquer autenticado lê para validar o código antes de criar conta
+      allow read:   if isAuth();
+
+      // Membro da empresa cria o convite
+      allow create: if isEmpresaMember(request.resource.data.empresaId) || isAdmin();
+
+      // Qualquer autenticado atualiza (marcar como usado no registro)
+      allow update: if isAuth();
+
+      allow delete: if isAdmin();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // BLOQUEIA TUDO QUE NÃO FOI EXPLICITAMENTE DECLARADO
+    // ══════════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

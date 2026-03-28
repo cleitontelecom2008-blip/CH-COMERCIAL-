@@ -1,0 +1,37 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "eventos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipo",  "order": "ASCENDING"  },
+        { "fieldPath": "tsIso", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pagamentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "empresaId", "order": "ASCENDING"  },
+        { "fieldPath": "criadoEm",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pagamentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",   "order": "ASCENDING"  },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "usuarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "empresaId",    "order": "ASCENDING"  },
+        { "fieldPath": "ultimoAcesso", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,6 +1,6 @@
 /**
  * @fileoverview SaaS Users — Gestão de Usuários por Empresa
- * @version 1.0.0
+ * @version 1.1.0
  *
  * Estrutura Firestore:
  *  usuarios/{uid}     → { empresaId, nome, email, cargo, criadoEm, ultimoAcesso }
@@ -74,8 +74,15 @@
     const db = _db();
     if (!db) return false;
     try {
-      const { doc, deleteDoc } = await _importFirestore();
-      await deleteDoc(doc(db, 'usuarios', uid));
+      // BUG FIX v3.1: Marcamos status='removido' em vez de deletar o documento.
+      // Se deletássemos, no próximo login o saas-auth.js criaria uma empresa nova
+      // para esse usuário (fallback de criação automática), burlando o bloqueio.
+      const { doc, updateDoc } = await _importFirestore();
+      await updateDoc(doc(db, 'usuarios', uid), {
+        status:    'removido',
+        removidoEm: new Date().toISOString(),
+        removidoPor: _userUid(),
+      });
       return true;
     } catch (err) {
       console.error('[SaasUsers] remover:', err);
@@ -212,6 +219,9 @@
   function _renderLista(usuarios) {
     const list = document.getElementById('saas-users-list');
     if (!list) return;
+
+    // BUG FIX v3.1: ocultar usuários com status='removido' da lista
+    usuarios = usuarios.filter(u => u.status !== 'removido');
 
     if (!usuarios.length) {
       list.innerHTML = `
@@ -362,7 +372,11 @@
 
     /** Confirma e remove um usuário */
     async _confirmarRemover(uid, nome) {
-      if (!confirm(`Remover "${nome}" da empresa?\n\nO usuário perderá acesso ao sistema imediatamente.`)) return;
+      // BUG FIX v3.1: usar Dialog.confirm async em vez do confirm() nativo bloqueante
+      const confirmado = window.Dialog?.confirm
+        ? await Dialog.confirm(`Remover "${nome}" da empresa?`, 'O usuário perderá acesso ao sistema imediatamente.')
+        : confirm(`Remover "${nome}" da empresa?\n\nO usuário perderá acesso ao sistema imediatamente.`);
+      if (!confirmado) return;
       const ok = await _removerUsuario(uid);
       if (ok) {
         _toast(`${nome} foi removido da empresa.`, 'success');

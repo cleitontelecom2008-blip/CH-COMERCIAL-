@@ -1,6 +1,6 @@
 /**
  * @fileoverview SaaS Plans — Controle de planos e limites
- * @version 1.0.0
+ * @version 1.1.0
  *
  * Uso:
  *   SaasPlans.check('ia')       → true/false
@@ -224,4 +224,26 @@
   };
 
   SaasPlans.init();
+
+  // BUG FIX v1.1: ao receber saas:ready, inicializar o contador local
+  // a partir do Firestore (SAAS_EMPRESA), evitando que devices novos
+  // comecem do zero e ignorem o limite já atingido.
+  window.addEventListener('saas:ready', () => {
+    const empresa = window.SAAS_EMPRESA || {};
+    const mesFirestore  = empresa.mesAtual || '';
+    const mesLocal      = _mesKey();
+    const vendFirestore = typeof empresa.vendasMes === 'number' ? empresa.vendasMes : 0;
+
+    const keyLocal = `SAAS_VENDAS_${window.SAAS_UID || 'local'}_${mesLocal}`;
+    const valLocal = (() => { try { const v = localStorage.getItem(keyLocal); return v ? parseInt(v, 10) : null; } catch { return null; } })();
+
+    if (mesFirestore !== mesLocal) {
+      // Virou o mês desde o último sync: zera localStorage
+      _setVendasMes(0);
+    } else if (valLocal === null || vendFirestore > valLocal) {
+      // Novo device ou Firebase está à frente: usa valor do Firebase
+      _setVendasMes(vendFirestore);
+    }
+    // Se localStorage > Firebase (vendas offline pendentes), mantém local
+  });
 })();

@@ -2,7 +2,7 @@ rules_version = '2';
 
 /**
  * PDV SaaS — Firestore Security Rules PRODUÇÃO
- * Version: 3.0.0
+ * Version: 3.1.0
  *
  * Estrutura final:
  *   admins/          → UIDs com acesso admin ao painel
@@ -46,14 +46,31 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(uid()));
     }
 
+    // Obtém o documento completo do usuário logado em usuarios/{uid}
+    function myUsuarioDoc() {
+      return get(/databases/$(database)/documents/usuarios/$(uid())).data;
+    }
+
     // Obtém o empresaId do usuário via coleção usuarios (1 leitura extra)
     function userEmpresaId() {
-      return get(/databases/$(database)/documents/usuarios/$(uid())).data.empresaId;
+      return myUsuarioDoc().empresaId;
+    }
+
+    // Obtém o cargo do usuário logado
+    function userCargo() {
+      return myUsuarioDoc().cargo;
     }
 
     // Verdadeiro se o usuário é membro da empresa do documento
     function isEmpresaMember(empresaId) {
       return isAuth() && userEmpresaId() == empresaId;
+    }
+
+    // Verdadeiro se o usuário logado é dono da empresa especificada
+    function isDonoDaEmpresa(empresaId) {
+      return isAuth() &&
+        userEmpresaId() == empresaId &&
+        userCargo() == 'dono';
     }
 
     // Campos que só admin pode alterar na coleção empresas
@@ -67,10 +84,10 @@ service cloud.firestore {
         .affectedKeys().hasAny(reservados);
     }
 
-    // Campos imutáveis de usuarios
-    function tocaCamposReservadosUsuario() {
+    // Campos imutáveis de usuarios que o próprio dono não pode alterar
+    function tocaCamposImutaveisUsuario() {
       return request.resource.data.diff(resource.data)
-        .affectedKeys().hasAny(['empresaId', 'cargo', 'criadoEm']);
+        .affectedKeys().hasAny(['empresaId', 'criadoEm']);
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -105,19 +122,47 @@ service cloud.firestore {
 
     // ══════════════════════════════════════════════════════════════
     // usuarios/{uid}
-    // { empresaId, nome, email, cargo, criadoEm, ultimoAcesso }
+    // { empresaId, nome, email, cargo, status, criadoEm, ultimoAcesso }
+    //
+    // PERMISSÕES:
+    //  • Próprio usuário lê/atualiza campos não-imutáveis
+    //  • Dono da empresa lê todos da sua empresa, altera cargo (não
+    //    pode promover para 'dono'), remove colaboradores
+    //  • Admin SaaS faz tudo
     // ══════════════════════════════════════════════════════════════
     match /usuarios/{userId} {
-      allow read:   if isOwner(userId) || isAdmin();
+      // Próprio usuário OU admin OU dono da mesma empresa pode ler
+      allow read: if isOwner(userId)
+                  || isAdmin()
+                  || (isAuth() && resource.data.empresaId == userEmpresaId());
 
       // Próprio usuário ou admin criam
       allow create: if isOwner(userId) || isAdmin();
 
-      // Próprio usuário atualiza, exceto campos reservados
+      // Atualização de cargo: apenas dono da empresa, desde que:
+      //   - O campo alterado seja somente 'cargo'
+      //   - O novo cargo não seja 'dono' (evita escalada de privilégio)
+      //   - Não esteja tentando alterar o próprio cargo
       allow update: if isAdmin()
-                    || (isOwner(userId) && !tocaCamposReservadosUsuario());
+                    || (isOwner(userId) && !tocaCamposImutaveisUsuario())
+                    || (
+                        isAuth()
+                        && resource.data.empresaId == userEmpresaId()
+                        && userCargo() == 'dono'
+                        && userId != uid()
+                        && request.resource.data.diff(resource.data)
+                               .affectedKeys().hasOnly(['cargo', 'status'])
+                        && request.resource.data.get('cargo', 'colaborador') != 'dono'
+                       );
 
-      allow delete: if isAdmin();
+      // Dono da empresa pode remover colaboradores (não a si mesmo)
+      allow delete: if isAdmin()
+                    || (
+                        isAuth()
+                        && resource.data.empresaId == userEmpresaId()
+                        && userCargo() == 'dono'
+                        && userId != uid()
+                       );
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -241,13 +286,14 @@ service cloud.firestore {
       // Qualquer autenticado lê para validar o código antes de criar conta
       allow read:   if isAuth();
 
-      // Membro da empresa cria o convite
-      allow create: if isEmpresaMember(request.resource.data.empresaId) || isAdmin();
+      // Dono da empresa cria o convite (não apenas membro)
+      allow create: if isDonoDaEmpresa(request.resource.data.empresaId) || isAdmin();
 
       // Qualquer autenticado atualiza (marcar como usado no registro)
       allow update: if isAuth();
 
-      allow delete: if isAdmin();
+      allow delete: if isAdmin()
+                    || isDonoDaEmpresa(resource.data.empresaId);
     }
 
     // ══════════════════════════════════════════════════════════════

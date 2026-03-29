@@ -1,130 +1,91 @@
-# PDV SaaS — Guia de Produção
-## pdvchgeladas.com
+# PDV SaaS — v7 (Patch Release)
+
+## Correções aplicadas nesta versão
+
+### 🔴 CRÍTICO — Firestore Rules (`firestore.rules`)
+
+**BUG 1 — Dono não conseguia ler lista de colaboradores**
+- `usuarios/{userId}` só permitia `isOwner(userId)` ou `isAdmin()` no `read`
+- Corrigido: adicionado `resource.data.empresaId == userEmpresaId()` para que qualquer membro da empresa leia usuários da mesma empresa
+
+**BUG 2 — Dono não conseguia alterar cargo nem remover colaboradores**
+- Regras anteriores não previam `update` nem `delete` pelo dono da empresa
+- Corrigido: novo helper `isDonoDaEmpresa()` e permissões explícitas de `update` (somente campo `cargo`/`status`, nunca para `'dono'`) e `delete` (nunca o próprio dono)
+- Proteção anti-escalada: `hasOnly(['cargo','status'])` + `cargo != 'dono'`
+
+**BUG 3 (parcial rules) — Qualquer membro podia criar convite**
+- Corrigido: `convites/create` exige `isDonoDaEmpresa()`, não apenas `isEmpresaMember()`
 
 ---
 
-## Estrutura Firestore Final
+### 🔴 CRÍTICO — Colaborador removido retornava ao sistema (`saas-users.js` + `saas-auth.js`)
 
-```
-admins/{uid}
-  → UIDs com acesso admin
-
-empresas/{empresaId}
-  → nome, plano, planoReal, planoExpira, status
-  → limites, vendasMes, dono, criadoEm
-
-usuarios/{uid}
-  → empresaId, nome, email, cargo, criadoEm, ultimoAcesso
-
-saas_dados/{empresaId}
-  → Dados PDV completos (vendas, estoque, inventário...)
-
-vendas/{empresaId}/registros/{vendaId}
-  → Histórico de vendas detalhado
-
-fiado/{empresaId}/registros/{fiadoId}
-  → Controle de fiado
-
-delivery/{empresaId}/pedidos/{pedidoId}
-  → Pedidos de delivery
-
-pagamentos/{id}
-  → empresaId, plano, valor, meses, gateway, status
-
-logs/{empresaId}/eventos/{autoId}
-  → Auditoria: tipo, acao, detalhes, uid, ts
-
-planosVencidos/{id}
-  → Log de bloqueios automáticos do cron
-
-convites/{code}
-  → Convites para colaboradores (24h)
-```
+**BUG 3 — Remover usuário com `deleteDoc` causava recriação de empresa**
+- O `saas-auth.js` tem fallback: se `usuarios/{uid}` não existe, cria uma nova empresa automaticamente
+- Portanto: deletar o documento fazia o colaborador banido receber uma empresa nova no próximo login
+- **Fix `saas-users.js`**: substituído `deleteDoc` por `updateDoc({ status: 'removido', removidoEm, removidoPor })`
+- **Fix `saas-auth.js`**: após resolver `usuario`, verifica `status === 'removido'` → bloqueia com mensagem e chama `signOut`
+- **Fix `saas-users.js` UI**: `_renderLista` filtra usuários com `status === 'removido'`
+- **Fix extra**: `ADMIN_UID` hardcoded removido de `saas-auth.js` (credencial desnecessária exposta)
+- **Fix extra**: `_confirmarRemover` usa `Dialog.confirm` async em vez de `confirm()` nativo bloqueante
 
 ---
 
-## Cloud Functions (7 funções)
+### 🟡 MÉDIO — `functions/index.js` — Batch reutilizado após commit
 
-| Função           | Tipo        | Trigger                    |
-|------------------|-------------|----------------------------|
-| criarEmpresaAuto | Auth        | usuário onCreate           |
-| verificarPlanos  | Cron        | todo dia 03:00 BRT         |
-| backupDiario     | Cron        | todo dia 02:00 BRT         |
-| criarPagamento   | HTTPS Call  | cliente → MP / Stripe      |
-| mpWebhook        | HTTPS POST  | Mercado Pago IPN           |
-| stripeWebhook    | HTTPS POST  | Stripe webhook             |
+**BUG 4 — `batch.commit()` seguido de novas operações no mesmo batch**
+- O Firestore WriteBatch lança erro se chamado após `commit()`
+- Corrigido: extraída função `_flushBatch()` que commita e recria o batch localmente
 
 ---
 
-## Logs
+### 🟡 MÉDIO — `saas-plans.js` — Contador de vendas não sincronizava com Firebase
 
-Cada ação importante grava em `logs/{empresaId}/eventos`:
-- empresa criada / bloqueada
-- plano ativado / vencido
-- pagamento criado / aprovado / reembolsado
-- backup iniciado / erro
-
-Ver no Firebase Console → Firestore → logs
+**BUG 5 — Novo dispositivo começava sempre do zero**
+- O contador ficava somente em `localStorage`
+- No login em um segundo device, o usuário conseguia fazer até `limite` vendas novamente
+- **Fix**: listener `saas:ready` lê `SAAS_EMPRESA.vendasMes` e inicializa o localStorage com o maior valor entre Firebase e local
 
 ---
 
-## Deploy Completo
+### 🟡 MÉDIO — `functions/index.js` — `vendasMes` nunca resetava mensalmente
+
+**BUG 6 — O campo `vendasMes` acumulava infinitamente**
+- O cron `verificarPlanos` não resetava o contador ao virar o mês
+- Corrigido: dentro do loop, se `empresa.mesAtual !== mesAtual` → `batch.update({ vendasMes: 0, mesAtual })`
+
+---
+
+### 🟢 MENOR — `firebase.json` — Cache `immutable` em arquivos JS sem hash
+
+**BUG 7 — Deploy de atualizações ignorado pelo browser**
+- `Cache-Control: public, max-age=31536000, immutable` em `**/*.js`
+- Sem hash no nome do arquivo (ex: `app-core.js` não vira `app-core.abc123.js`), o browser nunca revalidava
+- Corrigido: `public, max-age=3600, must-revalidate`
+
+---
+
+## Arquivos modificados
+
+| Arquivo | Versão anterior | Versão nova |
+|---|---|---|
+| `firestore.rules` | 3.0.0 | 3.1.0 |
+| `projeto/saas-auth.js` | 2.0.0 | 2.1.0 |
+| `projeto/saas-users.js` | 1.0.0 | 1.1.0 |
+| `projeto/saas-plans.js` | 1.0.0 | 1.1.0 |
+| `projeto/firebase.json` | — | patch |
+| `functions/index.js` | 3.0.0 | 3.1.0 |
+
+## Deploy
 
 ```bash
-# 1. Configurar secrets
-firebase functions:config:set \
-  mp.access_token="APP_USR-xxxx" \
-  stripe.secret_key="sk_live_xxxx" \
-  stripe.webhook_secret="whsec_xxxx" \
-  app.base_url="https://pdvchgeladas.com"
+# Regras Firestore
+firebase deploy --only firestore:rules
 
-# 2. Deploy tudo
-cd projeto && bash deploy.sh
+# Cloud Functions
+cd functions && npm install
+firebase deploy --only functions
+
+# Hosting
+firebase deploy --only hosting
 ```
-
----
-
-## Domínio pdvchgeladas.com
-
-No Firebase Console → Hosting → Add custom domain:
-1. Adicionar: pdvchgeladas.com
-2. Adicionar: www.pdvchgeladas.com
-3. Copiar registros DNS → painel do registrador
-4. Aguardar propagação (até 24h)
-
-Também adicionar o domínio em:
-Firebase Console → Authentication → Settings → Authorized domains
-
----
-
-## Backup
-
-O backup diário (`backupDiario`) exporta para:
-`gs://meu-pdv-saas-backups/YYYY-MM-DD/`
-
-Pré-requisito:
-1. Criar bucket: `gsutil mb -l southamerica-east1 gs://meu-pdv-saas-backups`
-2. IAM: dar papel "Cloud Datastore Import Export Admin" ao service account das Functions
-
----
-
-## Monitoramento
-
-- **Logs das Functions**: Firebase Console → Functions → Logs
-- **Cloud Logging**: console.cloud.google.com → Logging
-- **Alertas**: configurar em Cloud Monitoring → Alerting Policies
-- **Métricas de uso**: Firebase Console → Usage and billing
-
----
-
-## Planos
-
-| Plano   | Preço/mês | Vendas  | Usuários | IA  | Delivery |
-|---------|-----------|---------|----------|-----|----------|
-| Free    | Grátis    | 200     | 1        | ❌  | ❌       |
-| Basic   | R$49      | 2.000   | 3        | ❌  | ✅       |
-| Pro     | R$99      | ∞       | 10       | ✅  | ✅       |
-| Premium | R$199     | ∞       | 50       | ✅  | ✅       |
-
-Descontos: Trimestral -10% | Semestral -15% | Anual -20%
-

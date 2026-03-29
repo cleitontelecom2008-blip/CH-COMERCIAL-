@@ -1,6 +1,6 @@
 /**
  * @fileoverview PDV SaaS — Cloud Functions PRODUÇÃO
- * @version 3.0.0
+ * @version 3.1.0
  *
  * ┌──────────────────────────────────────────────────────────────────┐
  * │  AUTOMAÇÕES                                                      │
@@ -185,13 +185,35 @@ exports.verificarPlanos = functions
     });
 
     try {
-      const snap  = await db.collection('empresas').get();
-      const batch = db.batch();
-      let   ops   = 0;
+      const snap = await db.collection('empresas').get();
+      // BUG FIX v3.1: batch deve ser recriado após cada commit.
+      // Um WriteBatch commitado não pode receber novas operações.
+      let batch = db.batch();
+      let ops   = 0;
+      const mesAtual = _mesKey();
+
+      // Flush helper: commita e recria o batch
+      async function _flushBatch() {
+        if (ops > 0) {
+          await batch.commit();
+          batch = db.batch();
+          ops   = 0;
+        }
+      }
 
       for (const docSnap of snap.docs) {
         const e   = docSnap.data();
         const eid = docSnap.id;
+
+        // BUG FIX v3.1: resetar vendasMes ao virar o mês
+        if (e.mesAtual && e.mesAtual !== mesAtual) {
+          batch.update(db.collection('empresas').doc(eid), {
+            vendasMes: 0,
+            mesAtual,
+          });
+          ops++;
+          if (ops >= 480) await _flushBatch();
+        }
 
         // Free nunca expira; já bloqueados sem planoExpira: ignora
         if (!e.planoExpira || e.plano === 'free' || e.planoReal === 'free') {
@@ -235,16 +257,14 @@ exports.verificarPlanos = functions
           bloq.push({ eid, nome: e.nome, plano: e.plano, dias });
 
           // Flush batch a cada 480 ops (limite Firestore: 500)
-          if (ops >= 480) {
-            await batch.commit();
-            ops = 0;
-          }
+          if (ops >= 480) await _flushBatch();
         } else {
           ok.push(eid);
         }
       }
 
-      if (ops > 0) await batch.commit();
+      // Commit do que sobrou
+      await _flushBatch();
 
       // Logs individuais (fora do batch para não explodir memória)
       for (const b of bloq) {

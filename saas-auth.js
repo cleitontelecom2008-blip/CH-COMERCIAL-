@@ -1,6 +1,6 @@
 /**
  * @fileoverview SaaS Auth — Autenticação + Gestão de Empresas
- * @version 2.0.0
+ * @version 2.1.0
  *
  * Arquitetura v2 (multi-usuário real):
  *  ┌─────────────────────────────────────────────────────────┐
@@ -47,7 +47,6 @@ const SAAS_CONFIG = {
   appId:             "1:722034622350:web:9f0001fe5b850c6b8aeedf",
 };
 
-const ADMIN_UID = "Af5eqSaPqVOfqvDCVG8Q3zP3r812";
 
 /* ═══════════════════════════════════════════════════════════════════
    PLANOS
@@ -577,7 +576,16 @@ onAuthStateChanged(_auth, async (user) => {
       usuario = await _resolveUsuario(user.uid);
     }
 
-    // ── Passo 3: Obter empresaId do usuario ───────────────────────
+    // ── Passo 3: Verificar status e obter empresaId ──────────────
+    // BUG FIX v2.1: colaboradores removidos têm status='removido'.
+    // Não devem entrar no sistema nem ganhar empresa nova.
+    if (usuario.status === 'removido') {
+      _showPanel('login');
+      _showError('login', '🚫 Sua conta foi removida desta empresa. Entre em contato com o responsável.');
+      await signOut(_auth);
+      return;
+    }
+
     const { empresaId } = usuario;
     if (!empresaId) {
       _showPanel('login');
